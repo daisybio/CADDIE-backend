@@ -1,0 +1,4 @@
+#!/bin/bash
+python3 manage.py migrate
+python3 manage.py populate_db --clear_model Drug,Gene,CancerDataset,CancerType,DrugDataset,RelationDatasetType,CancerGeneEntity,GeneGeneInteraction,GeneDrugInteraction,DrugEntity,InteractionGeneGeneDataset,DiseaseInteractions,Disease,DiseaseGeneInteractions,InteractionGeneDrugDataset,MinSpanningTree,ShortestDistanceGeneToCancerGene,ShortestDistanceDrugToCancerGene,MutationCounts,MutationCancerType,GeneExpressionLevel,ExpressionCancerType,ExpressionLevel,Tissue,Cancernet
+python3 manage.py populate_db --add_data genes,drugs,cancer_genes,gene_gene_interactions,drug_gene_interactions,cancer_occurrences,comorbidities,tissues,mutation_count,cancer_expression,cancernet

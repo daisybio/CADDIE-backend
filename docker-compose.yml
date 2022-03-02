@@ -1,0 +1,48 @@
+version: '3.3'
+
+services:
+  app:
+    container_name: caddie_app
+    env_file:
+      - 'docker-django.env'
+    restart: always
+    ports:
+      - 8000:8000
+    networks:
+      - db_net
+      - redis_net
+    depends_on:
+      - db
+      - redis
+  db:
+    image: postgres
+    restart: always
+    hostname: db
+    networks:
+      - db_net
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=caddie
+      - POSTGRES_USER=caddie
+      - POSTGRES_PASSWORD=t6278yczAH7rPKVMxaDD
+    command:
+      - "postgres"
+      - "-c"
+      - "max_connections=10000"
+      - "-c"
+      - "shared_buffers=2GB"
+  redis:
+    image: redis
+    restart: always
+    command: ["redis-server"]
+    hostname: redis
+    networks:
+      - redis_net
+
+networks:
+  db_net:
+  redis_net:
+
+volumes:
+  postgres_data:
