@@ -2,6 +2,9 @@ version: '3.3'
 
 services:
   app:
+    build:
+      context: .
+      dockerfile: Dockerfile.PROD
     container_name: caddie_app
     env_file:
       - 'docker-django.env'
@@ -25,7 +28,7 @@ services:
     environment:
       - POSTGRES_DB=caddie
       - POSTGRES_USER=caddie
-      - POSTGRES_PASSWORD=t6278yczAH7rPKVMxaDD
+      - POSTGRES_PASSWORD=8tGCwBMPa5htrEvkBMbq5s8WVtrm8x
     command:
       - "postgres"
       - "-c"

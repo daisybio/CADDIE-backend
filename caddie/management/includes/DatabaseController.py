@@ -1266,6 +1266,15 @@ class DatabaseController:
                 mutation_score=row['mutation_score']
             )
 
+    def add_ctrpv2_data(self, df):
+        for _, row in df.iterrows():
+            drug_objects = models.Drug.objects.filter(name__iexact=row['cpd_name'])
+            if drug_objects:
+                print(row['cpd_name'])
+                drug_object = drug_objects[0]
+                drug_object.ctrpv2_id = int(row['master_cpd_id'])
+                drug_object.save()
+
     def add_cancernet_table(self, df, region, targeted):
         for index, row in df.iterrows():
             # find drug
@@ -1388,6 +1397,11 @@ class DatabaseController:
             .to_representation(node_node_interaction_objects)
         # merge dataset names
         df = pd.DataFrame.from_records(node_node_interactions)
+        # df['dataset_name_internal'] = df[
+        #     ['interactor_a_graphId', 'interactor_b_graphId', 'dataset_name_internal']
+        #     ].groupby(
+        #         ['interactor_a_graphId', 'interactor_b_graphId']
+        #         )['dataset_name_internal'].transform(lambda x: ','.join(x))
         df['dataset_name'] = df[
             ['interactor_a_graphId', 'interactor_b_graphId', 'dataset_name']
             ].groupby(
@@ -1435,14 +1449,14 @@ class DatabaseController:
 
         # get mutation scores
         mutation_type_objects = models.MutationCancerType.objects.all()
-        mutation_scores = {mt.abbreviation: None for mt in mutation_type_objects}
+        mutation_scores = {mt.name: None for mt in mutation_type_objects}
         for mt in mutation_type_objects:
             res = models.MutationCounts.objects.filter(
                 cancer_type=mt,
                 gene=gene_object
             )
             if res:
-                mutation_scores[mt.abbreviation] = res[0].mutation_score
+                mutation_scores[mt.name] = res[0].mutation_score
 
         return {
             'mutation_scores': mutation_scores,

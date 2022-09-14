@@ -237,7 +237,7 @@ def kpm_task(task_hook: TaskHook):
 
     result_dict = {
         'network': network,
-        "node_attributes": {"node_types": node_types, "is_seed": is_seed, "db_degrees": {}},
+        "node_attributes": {"node_types": node_types, "is_seed": is_seed, "db_degrees": {}, "is_result": {}},
         "cancer_types":  cancer_types,
         'cancer_dataset':  cancer_dataset_id,
         'gene_interaction_dataset': task_hook.parameters.get("gene_interaction_dataset", "BioGRID"),

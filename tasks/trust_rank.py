@@ -132,13 +132,16 @@ def trust_rank(task_hook: TaskHook):
     # Reasonable default: "1".
     # Acceptable values: "1", "2"
     gene_interaction_datasets = task_hook.parameters.get("gene_interaction_datasets", ["BioGRID"])
-      
+    # gene_interaction_datasets = [models.InteractionGeneGeneDataset.objects.get(name__iexact=x) for x in gene_interaction_datasets]
+    # gene_interaction_datasets = [f'{x.name}|{x.version}' for x in gene_interaction_datasets]
     # Type: str.
     # Semantics: The dataset which should be considered for the analysis.
     # Example: "1".
     # Reasonable default: "1".
     # Acceptable values: "1", "2"
     drug_interaction_datasets = task_hook.parameters.get("drug_interaction_datasets", ["BioGRID"])
+    # drug_interaction_datasets = [models.InteractionGeneDrugDataset.objects.get(name__iexact=x) for x in drug_interaction_datasets]
+    # drug_interaction_datasets = [f'{x.name}|{x.version}' for x in drug_interaction_datasets]
 
     # Type: list of str.
     # Semantics: Virus-host edge types which should be ignored for the analysis.
@@ -210,6 +213,8 @@ def trust_rank(task_hook: TaskHook):
     # Semantics: Include nutraceutical drugs as candidates for drug search
     include_nutraceutical_drugs = task_hook.parameters.get("include_nutraceutical_drugs", False)
 
+    include_only_ctrpv2_drugs = task_hook.parameters.get("include_only_ctrpv2_drugs", False)
+
     # Type: boolean.
     # Semantics: Include nutraceutical drugs as candidates for drug search
     only_atc_l_drugs = task_hook.parameters.get("only_atc_l_drugs", False)
@@ -221,7 +226,7 @@ def trust_rank(task_hook: TaskHook):
       mutation_cancer_type = models.MutationCancerType.objects.filter(name__iexact=mutation_cancer_type).first()
       if mutation_cancer_type is None:
         raise ValueError('Could not find mutation_cancer_type.')
-      
+
     expression_cancer_type = task_hook.parameters.get("expression_cancer_type", None)
     if expression_cancer_type is not None:
       expression_cancer_type = models.ExpressionCancerType.objects.filter(name__iexact=expression_cancer_type).first()
@@ -261,8 +266,10 @@ def trust_rank(task_hook: TaskHook):
         only_atc_l_drugs=only_atc_l_drugs,
         target=target,
         drug_action=drug_target_action,
-        available_drugs=available_drugs
+        available_drugs=available_drugs,
+        include_only_ctrpv2_drugs=include_only_ctrpv2_drugs
     )
+
     task_hook.set_progress(1 / 4.0, "Computing edge weights.")
     weights = edge_weights(
         g,
@@ -283,7 +290,7 @@ def trust_rank(task_hook: TaskHook):
     trust.a[seed_graph_ids] = 1.0 / len(seed_graph_ids)
 
     scores = gtc.pagerank(g, damping=damping_factor, pers=trust, weight=weights)
-    print(drug_ids)
+
     # Compute and return the results.
     task_hook.set_progress(3 / 4.0, "Formating results.")
     task_hook.set_results(

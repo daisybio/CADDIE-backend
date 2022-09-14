@@ -39,15 +39,15 @@ class DatabasePopulator:
         )
 
         # load the NCG6 dataset
-        print('Loading NCG version 7 dataset')
-        df = self.data_cleaner.process_ncg7_data()
-        # add the complete NCG6 dataset
-        self.dbc.add_gene_dataset(
-            dataset_name='NCG',
-            link='http://ncg.kcl.ac.uk/',
-            df=df,
-            version='7'
-        )
+        # print('Loading NCG version 7 dataset')
+        # df = self.data_cleaner.process_ncg7_data()
+        # # add the complete NCG6 dataset
+        # self.dbc.add_gene_dataset(
+        #     dataset_name='NCG',
+        #     link='http://ncg.kcl.ac.uk/',
+        #     df=df,
+        #     version='7'
+        # )
 
         # load COSMIC dataset
         print('Loading COSMIC dataset')
@@ -304,6 +304,14 @@ class DatabasePopulator:
 
         df = self.data_cleaner.process_mutation_counts()
         self.dbc.add_mutations_counts(df)
+
+        print('Done!\n')
+
+    def add_ctrpv2(self):
+        print('Populating CTRPv2 information ...\n')
+
+        df = self.data_cleaner.process_ctrpv2_drugs()
+        self.dbc.add_ctrpv2_data(df)
 
         print('Done!\n')
 

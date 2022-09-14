@@ -1,4 +1,6 @@
 from django.db import models
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 
 
 class DrugDataset(models.Model):
@@ -20,6 +22,7 @@ class Drug(models.Model):
     is_atc_antineoplastic_and_immunomodulating_agent = models.BooleanField(default=False)
     pharmaGKD_id = models.CharField(max_length=20, default='', unique=False)
     pubchem_substance_id = models.PositiveIntegerField(default=None, unique=True, null=True, blank=True)
+    ctrpv2_id = models.PositiveIntegerField(default=None, null=True)
 
 
 class DrugEntity(models.Model):
@@ -118,8 +121,8 @@ class CancerGeneEntity(models.Model):
     cancer_dataset_id = models.ForeignKey('CancerDataset', on_delete=models.CASCADE)
     cancer_type_id = models.ForeignKey('CancerType', on_delete=models.CASCADE)
     cancer_gene_id = models.ForeignKey('Gene', on_delete=models.CASCADE)
-    pubmed_id = models.PositiveIntegerField(default=None,  null=True)
-    cancer_occurrences = models.PositiveIntegerField(default=None,  null=True)
+    pubmed_id = models.PositiveIntegerField(default=None, null=True)
+    cancer_occurrences = models.PositiveIntegerField(default=None, null=True)
 
     class Meta:
         unique_together = ('cancer_dataset_id', 'cancer_type_id', 'cancer_gene_id')
@@ -247,6 +250,19 @@ class DiseaseGeneInteractions(models.Model):
 
     class Meta:
         unique_together = ('disease', 'gene')
+
+
+class EmpiricalNodeData(models.Model):
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    gene_interaction_dataset = models.ForeignKey('InteractionGeneGeneDataset', on_delete=models.CASCADE)
+    drug_interaction_dataset = models.ForeignKey('InteractionGeneDrugDataset', on_delete=models.CASCADE, null=True)
+    input_size = models.PositiveIntegerField()
+    count = models.PositiveIntegerField()
+
+    class Meta:
+        unique_together = ('object_id', 'gene_interaction_dataset', 'drug_interaction_dataset', 'input_size')
 
 
 class Task(models.Model):

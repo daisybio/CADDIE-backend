@@ -35,7 +35,7 @@ def summarize(task_hook: TaskHook):
         task_result_cur = task_result(task)
         # values are needed to be merged separately, always_merger only takes first argument
         task_result_object = _merge_node_attribute('node_types', task_result_cur, task_result_object)
-        task_result_object = _merge_node_attribute('degrees', task_result_cur, task_result_object)
+        task_result_object = _merge_node_attribute('db_degrees', task_result_cur, task_result_object)
         task_result_object = _merge_node_attribute('is_seed', task_result_cur, task_result_object)
         task_result_object = _merge_node_attribute('is_result', task_result_cur, task_result_object)
 
@@ -68,7 +68,10 @@ def summarize(task_hook: TaskHook):
     traces_degree = {'Drug': {'x': [], 'y': [], 'names': []}, 'CancerNode': {'x': [], 'y': [], 'names': []}, 'Node': {'x': [], 'y': [], 'names': []}}
     if 'scores' in task_result_object['node_attributes']:
         for node in task_result_object['network']['nodes']:
-            degree = task_result_object['node_attributes']['degrees'][node]
+            # not task_result_object['node_attributes']['is_result'] check for KPM
+            if not task_result_object['node_attributes']['is_result'] or not task_result_object['node_attributes']['is_result'][node]:
+                continue
+            degree = task_result_object['node_attributes']['db_degrees'][node]
             score = task_result_object['node_attributes']['scores'][node] if node in task_result_object['node_attributes']['scores'] else None
             node_type = task_result_object['node_attributes']['node_types'][node]
             traces_degree[node_type]['x'].append(degree)

@@ -4,7 +4,7 @@ import graph_tool as gt
 def read_graph_tool_graph(file_path, gene_datasets, drug_datasets, seeds, cancer_types, ignored_edge_types, max_deg, node_key='graphId',
                           ignore_non_seed_baits=False, include_indirect_drugs=False, include_non_approved_drugs=False,
                           target='drug', include_nutraceutical_drugs=True, only_atc_l_drugs=False, drug_action=None,
-                          available_drugs=None):
+                          available_drugs=None, include_only_ctrpv2_drugs=False):
     r"""Reads a graph-tool graph from file.
 
     Dataset is given in file_path, hence we dont need to set it explicitly via a parameter
@@ -95,20 +95,17 @@ def read_graph_tool_graph(file_path, gene_datasets, drug_datasets, seeds, cancer
             deleted_nodes.append(node)
 
         elif g.vertex_properties["type"][node] == "Drug":
-          
-            found = ['Tretinoin', 'Betulinic Acid', 'Thalidomide', 'Gossypol', 'Chlorambucil', 'Fluorouracil', 'Cimetidine', 'Azacitidine', 'Trifluoperazine', 'Paclitaxel', 'Tamoxifen', 'Teniposide', 'Sildenafil', 'Simvastatin', 'Procarbazine', 'Curcumin', 'Ciclopirox', 'Myricetin', 'Methotrexate', 'Lovastatin', 'Valdecoxib', 'Cyclophosphamide', 'Dacarbazine', 'Niclosamide', 'Prochlorperazine', 'Ifosfamide', 'Doxorubicin', 'Ouabain', 'Topotecan', 'Etoposide', 'Tanespimycin', '(S)-blebbistatin', 'Mitomycin', 'Tacrolimus', 'Staurosporine', 'Cerulenin', 'Dasatinib', 'Gefitinib', 'Erlotinib', 'Tacedinaline', 'Ciclosporin', 'Vorinostat', 'Sirolimus', 'Sitagliptin', 'Entinostat', 'Belinostat', 'Vincristine', 'Itraconazole', 'BIIB021', 'MMI-175', 'Dexamethasone', 'Imatinib', 'Decitabine', 'Axitinib', 'Selumetinib', 'Vandetanib', 'Sorafenib', 'Temozolomide', 'Navitoclax', 'Bexarotene', 'Nilotinib', 'Sunitinib', 'Bendamustine', 'Omacetaxine mepesuccinate', 'Oxaliplatin', 'Brefeldin A', 'Triptolide', 'Bortezomib', 'Zebularine', 'Pevonedistat', 'PAC-1', 'Gemcitabine', 'Olaparib', 'Indisulam', 'Tamatinib', 'BMS-754807', 'Tosedostat', 'Neratinib', 'Daporinad', 'MK-1775', 'Tivozanib', 'Tandutinib', 'Fulvestrant', 'Bafilomycin A1', 'Barasertib', 'Veliparib', 'Saracatinib', 'Afatinib', 'Cediranib', 'Canertinib', 'Obatoclax', 'Masitinib', 'Brivanib', 'SNS-032', 'PX-12', 'Nintedanib', 'Crizotinib', 'Foretinib', 'Regorafenib', 'OSI-930', 'Lenvatinib', '4-(6-HYDROXY-BENZO[D]ISOXAZOL-3-YL)BENZENE-1,3-DIOL', 'Lapatinib', 'SGX-523', 'Alisertib', 'Ruxolitinib', 'PHA-793887', 'Quizartinib', 'Fingolimod', 'Pazopanib', 'AZD-9684', 'Vorapaxar', 'Clofarabine', 'XL765', 'Bardoxolone methyl', 'Elocalcitol', 'Fluvastatin', 'Hyperforin', 'MK-0752', 'Semagacestat', 'Bosutinib', 'Temsirolimus', 'Abiraterone', 'Docetaxel', 'Nelarabine', 'Rigosertib', 'Silmitasertib', 'Momelotinib', 'Birinapant', 'Cabozantinib', 'Ibrutinib', 'Sotrastaurin', 'Tivantinib', 'Trametinib', 'Dinaciclib', 'Istradefylline', 'Alvocidib', 'Dabrafenib', 'Linsitinib']
-            if g.vertex_properties["name"][node] not in found:
+            if include_only_ctrpv2_drugs and not g.vertex_properties["ctrpv2_id"][node]:
                 deleted_nodes.append(node)
-                continue
 
-            if available_drugs is not None and g.vertex_properties["name"][node].lower() not in available_drugs:
+            elif available_drugs is not None and g.vertex_properties["name"][node].lower() not in available_drugs:
                 deleted_nodes.append(node)
 
             elif only_atc_l_drugs and not g.vertex_properties["is_antineoplastic_and_immunomodulating_agent"][node]:
                 deleted_nodes.append(node)
 
             # remove nutraceutical drugs if include_nutraceutical is false
-            elif include_nutraceutical_drugs and g.vertex_properties["is_nutraceutical"][node]:
+            elif not include_nutraceutical_drugs and g.vertex_properties["is_nutraceutical"][node]:
                 deleted_nodes.append(node)
 
     g.remove_vertex(deleted_nodes, fast=True)

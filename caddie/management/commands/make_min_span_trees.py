@@ -57,7 +57,7 @@ def calculate_min_spanning_tree(params):
 
     for graph_id in min_spanning_tree_graph_ids:
         gene = models.Gene.objects.get(id=graph_id[1:])
-        models.MinSpanningTree.objects.create(
+        models.MinSpanningTree.objects.get_or_create(
             cancer_type=cancer_type_object,
             gene=gene,
             cancer_dataset=dataset_object,

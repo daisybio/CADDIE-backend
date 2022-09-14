@@ -51,3 +51,5 @@ class Command(BaseCommand):
                     db_populator.add_mutation_count()
                 elif data == 'cancernet':
                     db_populator.add_cancernet()
+                elif data == 'ctrpv2':
+                    db_populator.add_ctrpv2()

@@ -106,6 +106,8 @@ def degree_centrality(task_hook: TaskHook):
     # Reasonable default: "1".
     # Acceptable values: "1", "2"
     gene_interaction_datasets = task_hook.parameters.get("gene_interaction_datasets", ["BioGRID"])
+    # gene_interaction_datasets = [models.InteractionGeneGeneDataset.objects.get(name__iexact=x) for x in gene_interaction_datasets]
+    # gene_interaction_datasets = [f'{x.name}|{x.version}' for x in gene_interaction_datasets]
 
     # Type: str.
     # Semantics: The dataset which should be considered for the analysis.
@@ -113,6 +115,8 @@ def degree_centrality(task_hook: TaskHook):
     # Reasonable default: "1".
     # Acceptable values: "1", "2"
     drug_interaction_datasets = task_hook.parameters.get("drug_interaction_datasets", ["BioGRID"])
+    # drug_interaction_datasets = [models.InteractionGeneDrugDataset.objects.get(name__iexact=x) for x in drug_interaction_datasets]
+    # drug_interaction_datasets = [f'{x.name}|{x.version}' for x in drug_interaction_datasets]
     
     # Type: list of str.
     # Semantics: Virus-host edge types which should be ignored for the analysis.
@@ -162,6 +166,8 @@ def degree_centrality(task_hook: TaskHook):
     # Semantics: Include nutraceutical drugs as candidates for drug search
     include_nutraceutical_drugs = task_hook.parameters.get("include_nutraceutical_drugs", False)
 
+    include_only_ctrpv2_drugs = task_hook.parameters.get("include_only_ctrpv2_drugs", False)
+
     # Type: boolean.
     # Semantics: Include nutraceutical drugs as candidates for drug search
     only_atc_l_drugs = task_hook.parameters.get("only_atc_l_drugs", False)
@@ -195,7 +201,8 @@ def degree_centrality(task_hook: TaskHook):
         only_atc_l_drugs=only_atc_l_drugs,
         target=target,
         drug_action=drug_target_action,
-        available_drugs=available_drugs
+        available_drugs=available_drugs,
+        include_only_ctrpv2_drugs=include_only_ctrpv2_drugs
     )
     
     # Set number of threads if OpenMP support is enabled.

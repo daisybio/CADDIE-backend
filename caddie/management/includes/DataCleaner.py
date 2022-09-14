@@ -40,7 +40,7 @@ class DataCleaner:
                         sep = ','
 
                         # all tab separated files
-                        if file[-3:] == 'tsv' or file[-7:] == 'tab.txt' or file[-3:] == 'tab':
+                        if file[-6:] == 'tsv.gz' or file[-10:] == 'tab.txt.gz' or file[-6:] == 'tab.gz':
                             sep = '\t'
                     return pd.read_csv(
                         file_path_abs, sep=sep, names=names, dtype=dtype,
@@ -185,7 +185,7 @@ class DataCleaner:
         :return: pandas DataFrame with columns, drug_id, drug_name, drug_status, in_trial, in_literature, links
         """
 
-        df = self.read_file('drug-intrial-link-file')
+        df = pd.read_csv('data/Common/drug-intrial-link-file.tsv.gz', compression='gzip', header=0, sep='\t')
 
         # dont use the CoVex status, use new status from repo trial which is not just Rona-specific
         df = df.drop(['drug_status'], axis=1)
@@ -793,4 +793,8 @@ class DataCleaner:
         if 'Cancer type (from website)' not in df:
             df['Cancer type (from website)'] = df['Cancer type']
             df['Cancer type (short version)'] = ''
+        return df
+
+    def process_ctrpv2_drugs(self):
+        df = pd.read_csv('data/ctrpv2/v20.meta.per_compound.tsv.gz', compression='gzip', header=0, sep='\t')
         return df

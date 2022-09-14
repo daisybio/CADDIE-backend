@@ -50,6 +50,8 @@ def network_proximity(task_hook: TaskHook):
     # Reasonable default: "1".
     # Acceptable values: "1", "2"
     gene_interaction_datasets = task_hook.parameters.get("gene_interaction_datasets", ["BioGRID"])
+    # gene_interaction_datasets = [models.InteractionGeneGeneDataset.objects.get(name__iexact=x) for x in gene_interaction_datasets]
+    # gene_interaction_datasets = [f'{x.name}|{x.version}' for x in gene_interaction_datasets]
 
     # Type: str.
     # Semantics: The dataset which should be considered for the analysis.
@@ -57,6 +59,8 @@ def network_proximity(task_hook: TaskHook):
     # Reasonable default: "1".
     # Acceptable values: "1", "2"
     drug_interaction_datasets = task_hook.parameters.get("drug_interaction_datasets", ["BioGRID"])
+    # drug_interaction_datasets = [models.InteractionGeneDrugDataset.objects.get(name__iexact=x) for x in drug_interaction_datasets]
+    # drug_interaction_datasets = [f'{x.name}|{x.version}' for x in drug_interaction_datasets]
 
     # Type: bool
     # Semantics: Sepcifies whether should be included in the analysis when ranking drugs.
@@ -115,6 +119,8 @@ def network_proximity(task_hook: TaskHook):
     # Semantics: Include nutraceutical drugs as candidates for drug search
     only_atc_l_drugs = task_hook.parameters.get("only_atc_l_drugs", False)
 
+    include_only_ctrpv2_drugs = task_hook.parameters.get("include_only_ctrpv2_drugs", False)
+
     filter_paths = task_hook.parameters.get("filter_paths", True)
 
     mutation_cancer_type = task_hook.parameters.get("mutation_cancer_type", None)
@@ -166,7 +172,8 @@ def network_proximity(task_hook: TaskHook):
         only_atc_l_drugs=only_atc_l_drugs,
         target='drug',
         drug_action=drug_target_action,
-        available_drugs=available_drugs
+        available_drugs=available_drugs,
+        include_only_ctrpv2_drugs=include_only_ctrpv2_drugs
     )
 
     # Computing edge weights.
@@ -180,16 +187,16 @@ def network_proximity(task_hook: TaskHook):
         inverse=True,
     )
 
-    # Delete drug targets not in LCC.
-    task_hook.set_progress(2.0 / 8, "Deleting drug targets not in LCC.")
+    # # Delete drug targets not in LCC.
+    # task_hook.set_progress(2.0 / 8, "Deleting drug targets not in LCC.")
     drug_targets = {drug_id: g.get_all_neighbors(drug_id) for drug_id in drug_ids}
-    for drug_id in drug_ids:
-        deleted_targets = []
-        targets = drug_targets[drug_id]
-        for i in range(len(targets)):
-            if g.vertex_properties["graphId"][targets[i]] in nodes_not_in_lcc:
-                deleted_targets.append(i)
-        drug_targets[drug_id] = np.delete(targets, deleted_targets)
+    # for drug_id in drug_ids:
+    #     deleted_targets = []
+    #     targets = drug_targets[drug_id]
+    #     for i in range(len(targets)):
+    #         if g.vertex_properties["graphId"][targets[i]] in nodes_not_in_lcc:
+    #             deleted_targets.append(i)
+    #     drug_targets[drug_id] = np.delete(targets, deleted_targets)
 
     # Compute all shortest path distances.
     task_hook.set_progress(3.0 / 8, "Computing all shortest path distances.")
@@ -268,6 +275,14 @@ def network_proximity(task_hook: TaskHook):
                     continue
                 vertices, edges = gtt.shortest_path(g, candidate, seed_id)
 
+                drug_in_path = False
+                for vertex in vertices:
+                    if g.vertex_properties["type"][int(vertex)] == "Drug" and vertex != candidate:
+                        drug_in_path = True
+                        break
+                if drug_in_path:
+                    continue
+
                 for vertex in vertices:
                     if int(vertex) not in returned_nodes:
                         returned_nodes.add(int(vertex))
@@ -279,6 +294,15 @@ def network_proximity(task_hook: TaskHook):
         for candidate in best_drugs_ids:
             for index, seed_id in enumerate(seed_graph_ids):
                 vertices, edges = gtt.shortest_path(g, candidate, seed_id)
+                
+                drug_in_path = False
+                for vertex in vertices:
+                    if g.vertex_properties["type"][int(vertex)] == "Drug" and vertex != candidate:
+                        drug_in_path = True
+                        break
+                if drug_in_path:
+                    continue
+
                 for vertex in vertices:
                     if int(vertex) not in returned_nodes:
                         returned_nodes.add(int(vertex))
@@ -288,8 +312,6 @@ def network_proximity(task_hook: TaskHook):
                         returned_edges.add((edge.source(), edge.target()))
 
 
-
-
     subgraph = {"nodes": [g.vertex_properties["graphId"][node] for node in returned_nodes],
                 "edges": [{"from": g.vertex_properties["graphId"][source], "to": g.vertex_properties["graphId"][target]} for source, target in returned_edges]}
     node_types = {g.vertex_properties["graphId"][node]: g.vertex_properties["type"][node] for node in returned_nodes}
@@ -297,15 +319,6 @@ def network_proximity(task_hook: TaskHook):
     returned_scores = {g.vertex_properties["graphId"][node]: None for node in returned_nodes}
     is_result = {g.vertex_properties["graphId"][node]: node in returned_nodes for node in returned_nodes}
     db_degrees = {g.vertex_properties["graphId"][node]: degrees[g.vertex_properties["graphId"][node]] for node in returned_nodes} 
-
-    # traces_degree = {'Drug': {'x': [], 'y': [], 'names': []}, 'CancerNode': {'x': [], 'y': [], 'names': []}, 'Node': {'x': [], 'y': [], 'names': []}}
-    # for node in returned_nodes:
-    #     degree = degrees[g.vertex_properties["graphId"][node]]
-    #     score = returned_scores[g.vertex_properties["graphId"][node]]
-    #     node_type = node_types[g.vertex_properties["graphId"][node]]
-    #     traces_degree[node_type]['x'].append(degree)
-    #     traces_degree[node_type]['y'].append(score)
-    #     traces_degree[node_type]['names'].append(g.vertex_properties["name"][node])
 
     for node, score in best_drugs:
         returned_scores[g.vertex_properties["graphId"][node]] = score

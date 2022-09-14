@@ -51,6 +51,8 @@ def multi_steiner(task_hook: TaskHook):
     # Reasonable default: "1".
     # Acceptable values: "1", "2"
     gene_interaction_datasets = task_hook.parameters.get("gene_interaction_datasets", ["BioGRID"])
+    # gene_interaction_datasets = [models.InteractionGeneGeneDataset.objects.get(name__iexact=x) for x in gene_interaction_datasets]
+    # gene_interaction_datasets = [f'{x.name}|{x.version}' for x in gene_interaction_datasets]
 
     # Type: str.
     # Semantics: The dataset which should be considered for the analysis.
@@ -58,6 +60,8 @@ def multi_steiner(task_hook: TaskHook):
     # Reasonable default: "1".
     # Acceptable values: "1", "2"
     drug_interaction_datasets = task_hook.parameters.get("drug_interaction_datasets", ["BioGRID"])
+    # drug_interaction_datasets = [models.InteractionGeneDrugDataset.objects.get(name__iexact=x) for x in drug_interaction_datasets]
+    # drug_interaction_datasets = [f'{x.name}|{x.version}' for x in drug_interaction_datasets]
 
     # Type: list of str.
     # Semantics: Virus-host g_edge types which should be ignored for the analysis.

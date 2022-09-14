@@ -625,6 +625,7 @@ def result_view(request):
         node_attributes['node_types'] = node_types
 
     is_seed = node_attributes.get('is_seed')
+    cluster = node_attributes.get('cluster', {})
     db_degrees = node_attributes.get('db_degrees')
 
     if not is_seed:
@@ -690,6 +691,8 @@ def result_view(request):
             if scores.get(node_graphId) is not None:
                 details_s['score'] = scores.get(node_graphId, None)
 
+            details_s['cluster'] = cluster[node_graphId] if node_graphId in cluster else 0
+
             if node_type == 'Node':
                 closest_baits = get_closest_cancer_genes_for_gene(
                     cancer_dataset,
@@ -703,6 +706,7 @@ def result_view(request):
                     minimum_distance = min([cb['distance'] for cb in closest_baits])
                 details_s['closest_cancer_genes'] = ','.join([cb['gene_b_name'] for cb in closest_baits])
                 details_s['closest_distance'] = minimum_distance if minimum_distance else ''
+
             elif node_type == 'Drug':
                 ds_closest_baits = []
                 for edge in edges:
@@ -1185,26 +1189,26 @@ class GeneExpressionView(APIView):
     Expression of proteins in tissues.
     """
 
-    def get(self, request):
-        expression_cancer_type = models.ExpressionCancerType.objects.get(id=request.query_params.get('cancerType'))
+    def post(self, request):
+        expression_cancer_type = models.ExpressionCancerType.objects.get(id=request.data.get('cancer_type'))
 
-        if request.query_params.get('genes') and request.query_params.get('cancerGenes'):
+        if request.data.get('genes') and request.data.get('cancer_genes'):
             # filter genes and cancer genes separately in order to not have to sort them again in the frontend
-            gene_backend_id_list = json.loads(request.query_params.get('genes', '')).split(',')
+            gene_backend_id_list = json.loads(request.data.get('genes', '')).split(',')
             if gene_backend_id_list[0] == '':
                 genes = []
             else:
                 genes = list(models.Gene.objects.filter(id__in=gene_backend_id_list).all())
 
-            cancer_gene_backendId_list = json.loads(request.query_params.get('cancerGenes', '')).split(',')
+            cancer_gene_backendId_list = json.loads(request.data.get('cancer_genes', '')).split(',')
             if cancer_gene_backendId_list[0] == '':
                 cancer_genes = []
             else:
                 cancer_genes = list(models.Gene.objects.filter(id__in=cancer_gene_backendId_list).all())
 
-        elif request.query_params.get('data'):
-            dataset = json.loads(request.query_params.get('data', '1'))
-            cancer_types = json.loads(request.query_params.get('cancerTypes', '')).split(',')
+        elif request.data.get('data'):
+            dataset = json.loads(request.data.get('data', '1'))
+            cancer_types = json.loads(request.data.get('cancer_Types', '')).split(',')
             cancer_genes = []
 
             # cancer_dataset = models.CancerDataset.objects.get(id=dataset)
@@ -1226,10 +1230,10 @@ class GeneExpressionView(APIView):
                 if edge_object.gene_b not in genes and edge_object.gene_b.id not in cancer_gene_ids:
                     genes.append(edge_object.gene_b)
 
-        elif request.query_params.get('token'):
+        elif request.data.get('token'):
             genes = []
             cancer_genes = []
-            task = models.Task.objects.get(token=request.query_params['token'])
+            task = models.Task.objects.get(token=request.data['token'])
             result = task_result(task)
             network = result['network']
             node_attributes = result.get('node_attributes')
@@ -1295,7 +1299,7 @@ class GeneExpressionView(APIView):
                     'score': None
                 })
 
-        return Response({'genes': pt_expressions_genes, 'cancerGenes': pt_expressions_cancer_genes})
+        return Response({'genes': pt_expressions_genes, 'cancer_genes': pt_expressions_cancer_genes})
 
 
 class TissueExpressionView(APIView):
@@ -1303,26 +1307,26 @@ class TissueExpressionView(APIView):
     Expression of proteins in tissues.
     """
 
-    def get(self, request):
-        tissue = models.Tissue.objects.get(id=request.query_params.get('tissue'))
+    def post(self, request):
+        tissue = models.Tissue.objects.get(id=request.data.get('tissue'))
 
-        if request.query_params.get('genes') and request.query_params.get('cancerGenes'):
+        if request.data.get('genes') and request.data.get('cancer_genes'):
             # filter genes and cancer genes separately in order to not have to sort them again in the frontend
-            gene_backend_id_list = json.loads(request.query_params.get('genes', '')).split(',')
+            gene_backend_id_list = json.loads(request.data.get('genes', '')).split(',')
             if gene_backend_id_list[0] == '':
                 genes = []
             else:
                 genes = list(models.Gene.objects.filter(id__in=gene_backend_id_list).all())
 
-            cancer_gene_backendId_list = json.loads(request.query_params.get('cancerGenes', '')).split(',')
+            cancer_gene_backendId_list = json.loads(request.data.get('cancer_genes', '')).split(',')
             if cancer_gene_backendId_list[0] == '':
                 cancer_genes = []
             else:
                 cancer_genes = list(models.Gene.objects.filter(id__in=cancer_gene_backendId_list).all())
 
-        elif request.query_params.get('data'):
-            dataset = json.loads(request.query_params.get('data', '1'))
-            cancer_types = json.loads(request.query_params.get('cancerTypes', '')).split(',')
+        elif request.data.get('data'):
+            dataset = json.loads(request.data.get('data', '1'))
+            cancer_types = json.loads(request.data.get('cancer_types', '')).split(',')
             cancer_genes = []
 
             # cancer_dataset = models.CancerDataset.objects.get(id=dataset)
@@ -1344,10 +1348,10 @@ class TissueExpressionView(APIView):
                 if edge_object.gene_b not in genes and edge_object.gene_b.id not in cancer_gene_ids:
                     genes.append(edge_object.gene_b)
 
-        elif request.query_params.get('token'):
+        elif request.data.get('token'):
             genes = []
             cancer_genes = []
-            task = models.Task.objects.get(token=request.query_params['token'])
+            task = models.Task.objects.get(token=request.data['token'])
             result = task_result(task)
             network = result['network']
             node_attributes = result.get('node_attributes')

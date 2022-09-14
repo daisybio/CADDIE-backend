@@ -19,10 +19,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', '0&y9v0@9%@c^woz8m+h2(^$#3gd^c@d82kmmq8tu*nesc_x9i+')
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', True)
+DEBUG = os.environ.get('DEBUG', False)
 
 ALLOWED_HOSTS = [
     'exbio.wzw.tum.de',  # Oscar
@@ -95,7 +95,7 @@ DATABASES = {
         'ENGINE': os.environ.get('SQL_ENGINE', 'django.db.backends.postgresql'),
         'NAME': os.environ.get('SQL_DATABASE', 'caddie'),   # os.path.join(BASE_DIR, 'db.sqlite3')
         'USER': os.environ.get('SQL_USER', 'caddie'),
-        'PASSWORD': os.environ.get('SQL_PASSWORD', 't6278yczAH7rPKVMxaDD'),
+        'PASSWORD': os.environ.get('SQL_PASSWORD'),
         'HOST': os.environ.get('SQL_HOST', 'caddie_db'),
         'PORT': os.environ.get('SQL_PORT', '5432'),
     }

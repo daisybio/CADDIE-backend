@@ -249,6 +249,7 @@ class DrugSerializer(serializers.ModelSerializer):
     in_literature = serializers.SerializerMethodField()
     links = serializers.SerializerMethodField()
     graphId = serializers.SerializerMethodField()
+    ctrpv2_id = serializers.SerializerMethodField()
     in_cancernet = serializers.SerializerMethodField()
     is_nutraceutical = serializers.SerializerMethodField()
     is_atc_antineoplastic_and_immunomodulating_agent = serializers.SerializerMethodField()
@@ -277,6 +278,9 @@ class DrugSerializer(serializers.ModelSerializer):
     def get_links(self, obj):
         return obj.links
 
+    def get_ctrpv2_id(self, obj):
+        return obj.ctrpv2_id if obj.ctrpv2_id else 0
+
     def get_in_cancernet(self, obj):
         return len(models.Cancernet.objects.filter(drug=int(obj.id))) > 0
 
@@ -299,6 +303,7 @@ class DrugSerializer(serializers.ModelSerializer):
             'links',
             'in_cancernet',
             'is_nutraceutical',
+            'ctrpv2_id',
             'is_atc_antineoplastic_and_immunomodulating_agent'
         ]
 
@@ -417,6 +422,7 @@ class DrugEntitySerializer(serializers.ModelSerializer):
     in_trial = serializers.SerializerMethodField()
     in_literature = serializers.SerializerMethodField()
     in_cancernet = serializers.SerializerMethodField()
+    ctrpv2_id = serializers.SerializerMethodField()
     links = serializers.SerializerMethodField()
 
     def get_backendId(self, obj):
@@ -440,12 +446,25 @@ class DrugEntitySerializer(serializers.ModelSerializer):
     def get_in_cancernet(self, obj):
         return len(models.Cancernet.objects.filter(drug=int(obj.drug_id))) > 0
 
+    def get_ctrpv2_id(self, obj):
+        return obj.drug_id.ctrpv2_id if obj.drug_id.ctrpv2_id else 0
+
     def get_links(self, obj):
         return obj.drug_id.links
 
     class Meta:
         model = models.DrugEntity
-        fields = ['backendId', 'db_id', 'name', 'status', 'in_trial', 'in_literature', 'links', 'in_cancernet']
+        fields = [
+            'backendId',
+            'db_id',
+            'name',
+            'status',
+            'in_trial',
+            'in_literature',
+            'ctrpv2_id',
+            'links',
+            'in_cancernet'
+            ]
 
 
 class ShortestDistanceDrugToCancerGeneSerializer(serializers.ModelSerializer):
@@ -650,6 +669,7 @@ class GeneGeneInteractionSerializer(serializers.ModelSerializer):
     backendId = serializers.SerializerMethodField()
     graphId = serializers.SerializerMethodField()
     dataset_name = serializers.SerializerMethodField()
+    dataset_name_internal = serializers.SerializerMethodField()
 
     def get_backendId(self, obj):
         return obj.id
@@ -696,6 +716,9 @@ class GeneGeneInteractionSerializer(serializers.ModelSerializer):
     def get_dataset_name(self, obj):
         return obj.interaction_dataset_id.name
 
+    def get_dataset_name_internal(self, obj):
+        return f'{obj.interaction_dataset_id.name}|{obj.interaction_dataset_id.version}'
+
     class Meta:
         model = models.GeneGeneInteraction
         fields = [
@@ -713,7 +736,8 @@ class GeneGeneInteractionSerializer(serializers.ModelSerializer):
             'interactor_b_protein_name',
             'backendId',
             'graphId',
-            'dataset_name'
+            'dataset_name',
+            'dataset_name_internal'
             ]
 
 
@@ -728,6 +752,7 @@ class GeneDrugInteractionSerializer(serializers.ModelSerializer):
     backendId = serializers.SerializerMethodField()
     graphId = serializers.SerializerMethodField()
     dataset_name = serializers.SerializerMethodField()
+    dataset_name_internal = serializers.SerializerMethodField()
 
     def get_backendId(self, obj):
         return obj.id
@@ -759,6 +784,9 @@ class GeneDrugInteractionSerializer(serializers.ModelSerializer):
     def get_dataset_name(self, obj):
         return obj.interaction_dataset_id.name
 
+    def get_dataset_name_internal(self, obj):
+        return f'{obj.interaction_dataset_id.name}|{obj.interaction_dataset_id.version}'
+
     class Meta:
         model = models.GeneDrugInteraction
         fields = [
@@ -772,7 +800,8 @@ class GeneDrugInteractionSerializer(serializers.ModelSerializer):
             'backendId',
             'graphId',
             'action',
-            'dataset_name'
+            'dataset_name',
+            'dataset_name_internal'
         ]
 
 

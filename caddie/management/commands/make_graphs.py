@@ -53,6 +53,7 @@ def create_gt(params):
     e_cancer = g.new_edge_property("string")
     e_action = g.new_edge_property("string")
     e_dataset_name = g.new_edge_property("string")
+    e_dataset_name_internal = g.new_edge_property("string")
 
     v_type = g.new_vertex_property("string")
     v_name = g.new_vertex_property("string")
@@ -64,6 +65,7 @@ def create_gt(params):
     v_status = g.new_vertex_property("string")
     v_in_trial = g.new_vertex_property("string")
     v_in_literature = g.new_vertex_property("string")
+    v_ctrpv2_id = g.new_vertex_property("int")
     v_db_id = g.new_vertex_property("string")
     v_mutation_scores = g.new_vertex_property("object")
     v_expression_scores = g.new_vertex_property("object")
@@ -75,6 +77,7 @@ def create_gt(params):
     g.edge_properties["type"] = e_type
     g.edge_properties["cancer"] = e_cancer
     g.edge_properties["dataset_name"] = e_dataset_name
+    g.edge_properties["dataset_name_internal"] = e_dataset_name_internal
     g.edge_properties["backendId"] = e_backendId
     g.edge_properties["graphId"] = e_graphId
 
@@ -87,6 +90,7 @@ def create_gt(params):
     g.vertex_properties["status"] = v_status
     g.vertex_properties["in_trial"] = v_in_trial
     g.vertex_properties["in_literature"] = v_in_literature
+    g.vertex_properties["ctrpv2_id"] = v_ctrpv2_id
     g.vertex_properties["is_nutraceutical"] = v_is_nutraceutical
     g.vertex_properties["is_antineoplastic_and_immunomodulating_agent"] = v_is_antineoplastic_and_immunomodulating_agent
     g.vertex_properties["db_id"] = v_db_id
@@ -153,6 +157,7 @@ def create_gt(params):
         v_status[v] = node['status']
         v_in_trial[v] = node['in_trial']
         v_in_literature[v] = node['in_literature']
+        v_ctrpv2_id[v] = node['ctrpv2_id']
         v_backendId[v] = node['backendId']
         v_graphId[v] = node['graphId']
         v_db_id[v] = node['db_id']
@@ -177,6 +182,7 @@ def create_gt(params):
                     e_backendId[e] = edge['backendId']
                     e_graphId[e] = edge['graphId']
                     e_dataset_name[e] = edge['dataset_name']
+                    e_dataset_name_internal[e] = edge['dataset_name_internal']
 
                     # get related cancer types
                     cancer_types = []
@@ -205,6 +211,7 @@ def create_gt(params):
             e_backendId[e] = edge['backendId']
             e_graphId[e] = edge['graphId']
             e_dataset_name[e] = edge['dataset_name']
+            e_dataset_name_internal[e] = edge['dataset_name_internal']
 
             # get cancer types edge is related to
             cancer_types = []
@@ -215,7 +222,7 @@ def create_gt(params):
     print("done with drug edges")
 
     # save graph
-    g.save(f"./data/Common/internal_{dataset}.gt")
+    g.save(f"./data/networks/internal_{dataset}.gt")
     print(f"saved {dataset}")
     return g, cancerNodes, vertices
 

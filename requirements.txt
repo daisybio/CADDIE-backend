@@ -14,7 +14,7 @@ flake8==3.7.9
 flake8-quotes==3.0.0
 idna==2.10
 mccabe==0.6.1
-networkx==2.2
+networkx==2.4
 numpy
 pandas
 psycopg2-binary>=2.8,<2.9
@@ -34,3 +34,5 @@ vcf-annotate-polyphen==0.1.2
 vcfpy==0.13.3
 pysam==0.16.0.1
 deepmerge==0.3.0
+pyensembl==2.0.0
+domino-python==0.1.1

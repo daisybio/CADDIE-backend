@@ -21,12 +21,11 @@ RUN conda install -c conda-forge -y graph-tool=2.32
 RUN pip install setuptools==57.5.0
 RUN pip install -r /usr/src/caddie/requirements.txt
 RUN pip install gunicorn
+RUN pyensembl install --release 106 --species human
 
 COPY ./supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY ./docker-entrypoint.sh /entrypoint.sh
 COPY ./import-data.sh /import-data.sh
-
-
 
 
 EXPOSE 8000

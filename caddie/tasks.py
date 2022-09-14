@@ -50,9 +50,6 @@ def run_task(token, algorithm, parameters_json):
         elif algorithm in ['trustrank', 'exampledrug']:
             from tasks.trust_rank import trust_rank
             trust_rank(task_hook)
-        elif algorithm in ['closeness', 'closeness_centrality']:
-            from tasks.closeness_centrality import closeness_centrality
-            closeness_centrality(task_hook)
         elif algorithm in ['harmonic', 'harmonic_centrality']:
             from tasks.harmonic_centrality import harmonic_centrality
             harmonic_centrality(task_hook)
@@ -62,6 +59,9 @@ def run_task(token, algorithm, parameters_json):
         elif algorithm in ['proximity', 'network_proximity']:
             from tasks.network_proximity import network_proximity
             network_proximity(task_hook)
+        elif algorithm == 'domino':
+            from tasks.domino import domino_task
+            domino_task(task_hook, token)
         elif algorithm in ['betweenness', 'betweenness_centrality']:
             from tasks.betweenness_centrality import betweenness_centrality
             betweenness_centrality(task_hook)
@@ -100,7 +100,7 @@ def refresh_from_redis(task):
 
 
 def start_task(task):
-    job = rq_tasks.enqueue(run_task, task.token, task.algorithm, task.parameters, job_timeout=30*60)
+    job = rq_tasks.enqueue(run_task, task.token, task.algorithm, task.parameters, job_timeout=30*60*5)
     task.job_id = job.id
 
 
