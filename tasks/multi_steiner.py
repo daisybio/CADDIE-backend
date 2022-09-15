@@ -14,103 +14,31 @@ import copy
 
 def multi_steiner(task_hook: TaskHook):
 
-    # Type: List of str
-    # Semantics: Names of the seed proteins. Use UNIPROT AC for host proteins, and
-    #            names of the format SARS_CoV2_<IDENTIFIER> (tree_edge.g., SARS_CoV2_ORF6) for
-    #            virus proteins.
-    # Reasonable default: None, has to be selected by user via "select for analysis"
-    #            utility in frontend.
-    # Acceptable values: UNIPROT ACs, identifiers of viral proteins.
     seeds = task_hook.parameters["seeds"]
     seeds.sort()
 
-    # Type: str
-    # Semantics: sets the target of algorithms
-
-    # Reasonable nodes, usually we target the nodes
-
-    # Acceptable values: "nodes" or "drugs"
     target = task_hook.parameters.get("target", "drug-target")
 
-    # Type: str.
-    # Semantics: The virus strain for which the analysis should be run.
-    # Example: "SARS_CoV2"
-    # Reasonable default: None, has to be specified by the caller.
-    # Acceptable values: "[1]", ...
     cancer_types = task_hook.parameters.get("cancer_types", [])
-    # Type: str.
-    # Semantics: The dataset which should be considered for the analysis.
-    # Example: "1".
-    # Reasonable default: "1".
-    # Acceptable values: "1", "2"
+   
     cancer_dataset = task_hook.parameters.get("cancer_dataset", "NCG6")
 
-    # Type: str.
-    # Semantics: The dataset which should be considered for the analysis.
-    # Example: "1".
-    # Reasonable default: "1".
-    # Acceptable values: "1", "2"
     gene_interaction_datasets = task_hook.parameters.get("gene_interaction_datasets", ["BioGRID"])
-    # gene_interaction_datasets = [models.InteractionGeneGeneDataset.objects.get(name__iexact=x) for x in gene_interaction_datasets]
-    # gene_interaction_datasets = [f'{x.name}|{x.version}' for x in gene_interaction_datasets]
-
-    # Type: str.
-    # Semantics: The dataset which should be considered for the analysis.
-    # Example: "1".
-    # Reasonable default: "1".
-    # Acceptable values: "1", "2"
+    
     drug_interaction_datasets = task_hook.parameters.get("drug_interaction_datasets", ["BioGRID"])
-    # drug_interaction_datasets = [models.InteractionGeneDrugDataset.objects.get(name__iexact=x) for x in drug_interaction_datasets]
-    # drug_interaction_datasets = [f'{x.name}|{x.version}' for x in drug_interaction_datasets]
-
-    # Type: list of str.
-    # Semantics: Virus-host g_edge types which should be ignored for the analysis.
-    # Example: ["node-node"].
-    # Note: If empty, all available g_edge types are used.
-    # Reasonable default: [].
-    # Acceptable values: "node-node", "cancer-node", "cancer-cancer".
+    
     ignored_edge_types = task_hook.parameters.get("ignored_edge_types", [])
     
-    # Type bool.
-    # Semantics: Ignore viral proteins which are not selected as seeds.
-    # Example: False.
-    # Reasonable default: False.
-    # Has no effect when the algorithm is used for ranking drugs.
     ignore_non_seed_baits = task_hook.parameters.get("ignore_non_seed_baits", False)
 
-    # Type: int.
-    # Semantics: Number of steiner trees to return.
-    # Example: 10.
-    # Reasonable default: 5.
-    # Acceptable values: integers n with 0 < n < 25.
     num_trees = task_hook.parameters.get("num_trees", 5)
     
-    # Type: float.
-    # Semantics: The error tolerance of the subsequent Steiner trees w.r.t. the first one in percent.
-    # Example: 10
-    # Reasonable default: 10.
-    # Acceptable values: floats x >= 0. 
     tolerance = task_hook.parameters.get("tolerance", 10)
     
-    # Type: int.
-    # Semantics: All nodes with degree > max_deg * g.num_vertices() are ignored.
-    # Example: 39.
-    # Reasonable default: sys.maxsize.
-    # Acceptable values: Positive integers.
     max_deg = task_hook.parameters.get("max_deg", sys.maxsize)
     
-    # Type: float.
-    # Semantics: Penalty parameter for hubs. Set edge weight to 1 + (hub_penalty / 2) (e.source.degree + e.target.degree)
-    # Example: 0.5.
-    # Reasonable default: 0.
-    # Acceptable values: Floats between 0 and 1.
     hub_penalty = task_hook.parameters.get("hub_penalty", 0.0)
     
-    # Type: int.
-    # Semantics: Number of threads used for running the analysis.
-    # Example: 1.
-    # Reasonable default: 1.
-    # Note: We probably do not want to expose this parameter to the user.
     num_threads = task_hook.parameters.get("num_threads", 1)
 
     mutation_cancer_type = task_hook.parameters.get("mutation_cancer_type", None)

@@ -65,41 +65,6 @@ class DataCleaner:
 
         df = df.drop_duplicates()
 
-        # data is very unclean, but wtf is this cancer type... No cancer???
-        df = df[df['cancer_type'] != '-']
-
-        # convert html entities like &#39; to string
-        df['cancer_type'] = df['cancer_type'].map(html.unescape)
-
-        df = df.rename(columns={
-            'symbol': 'name',
-            'entrez': 'entrez_id',
-        })
-
-        df = df.drop_duplicates()
-
-        return df
-
-    def process_ncg7_data(self):
-        """
-        Reads and cleans the NCG7 dataset.
-        The NCG6 dataset contains cancer-driver genes with attributes:
-        - entrez
-        - symbol
-        - pubmed_id
-        - type
-        - primary_site
-        - cancer_type
-        - method
-
-        :return: pandas DataFrame with the relevant data ('name', 'cancer_type', 'entrez_id', 'pubmed_id')
-        """
-
-        df = self.read_file('NCG7_cancergenes')[['symbol', 'cancer_type', 'entrez', 'pubmed_id']]
-
-        df = df.drop_duplicates()
-
-        # data is very unclean, but wtf is this cancer type... No cancer???
         df = df[df['cancer_type'] != '-']
 
         # convert html entities like &#39; to string
@@ -149,7 +114,6 @@ class DataCleaner:
             index = df[df['Gene Symbol'] == gene].index[0]
             df.at[index, 'Entrez GeneId'] = entrez_id
 
-        # data is very unclean, but wtf is this cancer type... No cancer???
         df = df[df['Tumour Types'] != '-']
 
         # no pubmed_id
@@ -187,7 +151,6 @@ class DataCleaner:
 
         df = pd.read_csv('data/Common/drug-intrial-link-file.tsv.gz', compression='gzip', header=0, sep='\t')
 
-        # dont use the CoVex status, use new status from repo trial which is not just Rona-specific
         df = df.drop(['drug_status'], axis=1)
 
         # merge 'is_nutraceutical'

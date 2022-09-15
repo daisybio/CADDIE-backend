@@ -32,15 +32,8 @@ def quick_task(task_hook: TaskHook):
             :param result:
             :return:
             """
-            # node_attributes = result.get("node_attributes", {})
             cancer_types = result.get("cancer_types", [])
-            # node_types = node_attributes.get("node_types", {})
             # seeds are all seed nodes with type see or nodes that were not in node_Types but are still seed nodes
-            # TODO how is that possible? do we add nodes but not node_types?
-            # seeds = [seed for seed in result["network"]["nodes"] if node_types.get(seed) == 'CancerNode']
-            # seeds = result["network"]["nodes"]
-            # print('length seeds')
-            # print(len(seeds))
             if len(result["network"]["nodes"]) == 0:
                 task_hook.set_results({"network": {"nodes": [], "edges": []}})
                 return

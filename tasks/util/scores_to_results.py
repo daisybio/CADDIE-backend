@@ -75,19 +75,8 @@ def scores_to_results(
                         returned_edges.add((edge.source(), edge.target()))
 
 
-            # for neighbor in g.get_all_neighbors(node):
-            #     if int(neighbor) > node and int(neighbor) in returned_nodes:
-            #         returned_edges.append((node, int(neighbor)))
-    # max_score = max([scores[node] for node in returned_nodes])
-    # max_non_virus_score = max([scores[node] for node in returned_nodes if not node in set(cancer_driver_gene_ids)])
-    # max_non_seed_score = float("nan")
-    # if result_size > 0:
-    #     max_non_seed_score = max([scores[node] for node in best_candidates])
     subgraph = {"nodes": [g.vertex_properties["graphId"][node] for node in returned_nodes],
                 "edges": [{"from": g.vertex_properties["graphId"][source], "to": g.vertex_properties["graphId"][target]} for source, target in returned_edges],
-                # "max_score": max_score,
-                # "max_non_virus_score": max_non_virus_score,
-                # "max_non_seed_score": max_non_seed_score,
                 }
 
     # Compute node attributes.

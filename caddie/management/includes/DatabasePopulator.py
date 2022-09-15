@@ -32,22 +32,11 @@ class DatabasePopulator:
         df = self.data_cleaner.process_ncg6_data()
         # add the complete NCG6 dataset
         self.dbc.add_gene_dataset(
-            dataset_name='NCG',
+            dataset_name='NCG6',
             link='http://ncg.kcl.ac.uk/',
             df=df,
             version='6'
         )
-
-        # load the NCG6 dataset
-        # print('Loading NCG version 7 dataset')
-        # df = self.data_cleaner.process_ncg7_data()
-        # # add the complete NCG6 dataset
-        # self.dbc.add_gene_dataset(
-        #     dataset_name='NCG',
-        #     link='http://ncg.kcl.ac.uk/',
-        #     df=df,
-        #     version='7'
-        # )
 
         # load COSMIC dataset
         print('Loading COSMIC dataset')
@@ -166,18 +155,6 @@ class DatabasePopulator:
 
     def populate_drug_gene_interactions(self):
         print('Populating Drug Gene Interaction model ...')
-
-        # print('Loading Common Drug Protein dataset\n')
-        # # get the cleaned dataset
-        # df = self.data_cleaner.process_common_drug_protein_data()
-        # # add it to the database
-        # self.dbc.add_drug_gene_relations(
-        #     df=df,
-        #     interaction_dataset_name='CoVex',
-        #     link='https://exbio.wzw.tum.de/covex/',
-        #     version='1.0',
-        #     common=True
-        # )
 
         print('Loading BIOGRID-ORGANISM-Homo_sapiens dataset')
         # get the cleaned dataset

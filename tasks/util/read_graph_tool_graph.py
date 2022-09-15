@@ -90,7 +90,6 @@ def read_graph_tool_graph(file_path, gene_datasets, drug_datasets, seeds, cancer
                         break
 
         # remove all drugs from graph if we are not looking for drugs
-        # in covex this is implemented via a separate file
         elif target != 'drug' and g.vertex_properties["type"][node] == "Drug":
             deleted_nodes.append(node)
 
@@ -166,10 +165,6 @@ def read_graph_tool_graph(file_path, gene_datasets, drug_datasets, seeds, cancer
                     continue
             deleted_edges.append(edge)
             continue
-
-        # TODO is this wanted?
-        # elif g.edge_properties["type"][edge] in ignored_edge_types:
-        #     deleted_edges.append(edge)
 
         # check if cancer types are not related to edge
         # no cancer type in edge means that edge is not related to any cancer node in this dataset

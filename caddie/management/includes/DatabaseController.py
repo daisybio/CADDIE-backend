@@ -1053,7 +1053,7 @@ class DatabaseController:
 
         for index, row in df.iterrows():
             # add gene to db
-            # here it is possible to add genes without entrez id (''). Name is always set in protein data from CoVex
+            # here it is possible to add genes without entrez id (''). 
             if pd.isna(row['entrez_id']):
                 row['entrez_id'] = None
             models.Gene.objects.get_or_create(

@@ -18,52 +18,6 @@ def trust_rank(task_hook: TaskHook):
     centraities are initialized by assigning uniform probabilities to all seeds and zero 
     probabilities to all non-seed nodes.
     
-    Parameters
-    ----------
-    strain_or_drugs : str
-      The virus strain for which the analysis should be run, or the string literal "drugs"
-      (if used for ranking drugs).
-      
-    seeds : list of str
-      A list of UNIPROT IDs identifying the seed proteins.
-      
-    dataset : str
-      List of dataset whose nodes and returned_edges should be considered for the analysis.
-      If empty, all available dataset are employed.
-      
-    ignored_edge_types : list of str, optional (default: [])
-      Edges whose types are contained in this list are ignored in the analysis.
-      
-    ignore_drug_non_seed_edges : bool, optional (default: False)
-      If True, edges from non-seed host proteins to drugs are ignored when ranking drugs.
-      
-    include_non_approved_drugs : bool, optional (default: False)
-      If True, also non-approved drugs are considered when ranking drugs.
-      
-    damping_factor : float, optional (default: 0.85)
-      The employed damping factor (between 0 and 1). The larger the damping factor, 
-      the faster the trust is propagated through the network.
-      
-    result_size : int, optional (default: 20)
-      The number of new candidate proteins to be returned.
-      
-    num_threads : int, optional (default: 1)
-      Number of threads. Requires that graph_tool is compiled with OpenMP support.
-      Should not be exposed in the frontend.
-      
-    Returns
-    -------
-    results : {"networks": list of dict, "node_attributes": list of dict}
-      "networks": A one-element list containing the subgraph induced by the result 
-        proteins and the seeds, along with the maximal score of all nodes, the maximal
-        score off all nodes except virus proteins, and the maximal scores of all nodes
-        except seed nodes.
-      "node_attributes": A one-element list containing a dictionary with the following 
-        attributes for all nodes in the returned network:
-        "node_types": The type of the nodes (either , "host", or "drug").
-        "is_seed": A flag that specifies whether the node is a seed.
-        "scores": The un-normalized scores for all non-seed nodes (nan for the virus proteins).
-      
     Notes
     -----
     Let :math:`S` be the number of seeds, :math:`d` be the selected damping factor, 
@@ -94,129 +48,40 @@ def trust_rank(task_hook: TaskHook):
        VLDB, 2004, pp. 576-587, https://doi.org/10.1016/B978-012088469-8.50052-8.
     """
     
-    # Type: list of str
-    # Semantics: Names of the seed proteins. Use UNIPROT IDs for host proteins, and 
-    #            names of the for SARS_CoV2_<IDENTIFIER> (e.g., SARS_CoV2_ORF6) for
-    #            virus proteins.
-    # Reasonable default: None, has to be selected by user via "select for analysis"
-    #            utility in frontend.
-    # Acceptable values: UNIPROT IDs, identifiers of viral proteins.
     seeds = task_hook.parameters["seeds"]
 
-    # Type: str
-    # Semantics: sets the target of algorithms
-
-    # Reasonable nodes, usually we target the nodes
-
-    # Acceptable values: "drug-target" or "drug"
     target = task_hook.parameters.get("target", "drug-target")
 
-    # Type: str.
-    # Semantics: The virus strain for which the analysis should be run.
-    # Example: "SARS_CoV2"
-    # Reasonable default: None, has to be specified by the caller.
-    # Acceptable values: "1", ...
     cancer_types = task_hook.parameters.get("cancer_types", [])  
-    # Type: list of str.
-    # Semantics: The datasets which should be considered for the analysis.
-    # Example: ["Krogan", "TUM"].
-    # Note: If empty, all available datasets are used. When ranking drugs, the 
-    #       default [] should be used.
-    # Reasonable default: [].
-    # Acceptable values: "Krogan", "TUM".
+
     cancer_dataset = task_hook.parameters.get("cancer_dataset", 'NCG6')
 
-    # Type: str.
-    # Semantics: The dataset which should be considered for the analysis.
-    # Example: "1".
-    # Reasonable default: "1".
-    # Acceptable values: "1", "2"
     gene_interaction_datasets = task_hook.parameters.get("gene_interaction_datasets", ["BioGRID"])
-    # gene_interaction_datasets = [models.InteractionGeneGeneDataset.objects.get(name__iexact=x) for x in gene_interaction_datasets]
-    # gene_interaction_datasets = [f'{x.name}|{x.version}' for x in gene_interaction_datasets]
-    # Type: str.
-    # Semantics: The dataset which should be considered for the analysis.
-    # Example: "1".
-    # Reasonable default: "1".
-    # Acceptable values: "1", "2"
+   
     drug_interaction_datasets = task_hook.parameters.get("drug_interaction_datasets", ["BioGRID"])
-    # drug_interaction_datasets = [models.InteractionGeneDrugDataset.objects.get(name__iexact=x) for x in drug_interaction_datasets]
-    # drug_interaction_datasets = [f'{x.name}|{x.version}' for x in drug_interaction_datasets]
-
-    # Type: list of str.
-    # Semantics: Virus-host edge types which should be ignored for the analysis.
-    # Example: ["Overexpression"].
-    # Note: If empty, all available edge types are used. When ranking drugs, the 
-    #       default [] should be used.
-    # Reasonable default: [].
-    # Acceptable values: "AP-MS", "overexpression".
+    
     ignored_edge_types = task_hook.parameters.get("ignored_edge_types", [])
     
-    # Type bool.
-    # Semantics: Ignore viral proteins which are not selected as seeds.
-    # Example: False.
-    # Reasonable default: False.
-    # Has no effect when the algorithm is used for ranking drugs.
     ignore_non_seed_baits = task_hook.parameters.get("ignore_non_seed_baits", False)
     
-    # Type: bool
-    # Semantics: Sepcifies whether also drugs targeting interactors of the seeds should be considered.
-    # Example: False.
-    # Reasonable default: False.
-    # Has no effect unless trust_rank.py is used for ranking drugs.
     include_indirect_drugs = task_hook.parameters.get("include_indirect_drugs", False)
     
-    # Type: bool
-    # Semantics: Sepcifies whether should be included in the analysis when ranking drugs.
-    # Example: False.
-    # Reasonable default: False.
-    # Has no effect unless trust_rank.py is used for ranking drugs.
     include_non_approved_drugs = task_hook.parameters.get("include_non_approved_drugs", False)
     
-    # Type: double.
-    # Semantics: Damping factor used by TrustRank. The larger the damping factor,
-    #            the faster the trust is propagated through the network.
-    # Example: 0.85.
-    # Reasonable default: 0.85.
-    # Acceptable values: doubles x with 0 < x < 1.
     damping_factor = task_hook.parameters.get("damping_factor", 0.85)
     
-    # Type: int.
-    # Semantics: Number of returned proteins.
-    # Example: 20.
-    # Reasonable default: 20.
-    # Acceptable values: integers n with n > 0.
     result_size = task_hook.parameters.get("result_size", 20)
     
-    # Type: int.
-    # Semantics: All nodes with degree > max_deg * g.num_vertices() are ignored.
-    # Example: 39.
-    # Reasonable default: sys.maxsize.
-    # Acceptable values: Positive integers.
     max_deg = task_hook.parameters.get("max_deg", sys.maxsize)
 
-    # Type: float.
-    # Semantics: Penalty parameter for hubs. Set edge weight to 1 + (hub_penalty / 2) (e.source.degree + e.target.degree)
-    # Example: 0.5.
-    # Reasonable default: 0.
-    # Acceptable values: Floats between 0 and 1.
     hub_penalty = task_hook.parameters.get("hub_penalty", 0.0)
     
-    # Type: int.
-    # Semantics: Number of threads used for running the analysis.
-    # Example: 1.
-    # Reasonable default: 1.
-    # Note: We probably do not want to expose this parameter to the user.
     num_threads = task_hook.parameters.get("num_threads", 1)
 
-    # Type: boolean.
-    # Semantics: Include nutraceutical drugs as candidates for drug search
     include_nutraceutical_drugs = task_hook.parameters.get("include_nutraceutical_drugs", False)
 
     include_only_ctrpv2_drugs = task_hook.parameters.get("include_only_ctrpv2_drugs", False)
 
-    # Type: boolean.
-    # Semantics: Include nutraceutical drugs as candidates for drug search
     only_atc_l_drugs = task_hook.parameters.get("only_atc_l_drugs", False)
 
     filter_paths = task_hook.parameters.get("filter_paths", True)
