@@ -11,7 +11,7 @@ import django
 
 django.setup()
 
-KERNEL = 10
+KERNEL = 1
 
 
 def create_gt(params):
@@ -244,3 +244,5 @@ class Command(BaseCommand):
         db.connections.close_all()
         pool = multiprocessing.Pool(KERNEL)
         pool.map(create_gt, parameter_combinations)
+        print('Made all graphs!')
+        return

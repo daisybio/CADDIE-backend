@@ -43,6 +43,7 @@ ALLOWED_HOSTS = [
 # Application definition
 
 INSTALLED_APPS = [
+    'clearcache',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -93,9 +94,9 @@ WSGI_APPLICATION = 'caddie.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': os.environ.get('SQL_ENGINE', 'django.db.backends.postgresql'),
-        'NAME': os.environ.get('SQL_DATABASE', 'caddie'),   # os.path.join(BASE_DIR, 'db.sqlite3')
-        'USER': os.environ.get('SQL_USER', 'caddie'),
-        'PASSWORD': os.environ.get('SQL_PASSWORD'),
+        'NAME': os.environ.get('POSTGRES_DATABASE', 'caddie'),
+        'USER': os.environ.get('DJANGO_SUPERUSER_USERNAME', 'caddie'),
+        'PASSWORD': os.environ.get('DJANGO_SUPERUSER_PASS', 'caddiepasswd123'),
         'HOST': os.environ.get('SQL_HOST', 'caddie_db'),
         'PORT': os.environ.get('SQL_PORT', '5432'),
     }

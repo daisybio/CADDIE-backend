@@ -16,7 +16,7 @@ Including another URLconf
 
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 
 import caddie.views as views
 from django.views.decorators.cache import cache_page
@@ -57,6 +57,7 @@ urlpatterns = [
     path('cancernet_lookup/', views.CancernetLookupView.as_view()),
     path('gene_drug_interaction_lookup/', views.GeneDrugInteractionLookup.as_view()),
     path('vcf_lookup/', views.VCFSeedLookup.as_view()),
+    path('admin/clearcache/', include('clearcache.urls')),
     path('admin/', admin.site.urls),
 
     path('cancer_genes_internal/', views.InternalCancerGeneView.as_view()),

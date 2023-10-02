@@ -47,7 +47,7 @@ def run_task(token, algorithm, parameters_json):
         elif algorithm == 'keypathwayminer':
             from tasks.keypathwayminer_task import kpm_task
             kpm_task(task_hook)
-        elif algorithm in ['trustrank', 'exampledrug']:
+        elif algorithm in ['trustrank', 'exampledrug', 'simpledrug']:
             from tasks.trust_rank import trust_rank
             trust_rank(task_hook)
         elif algorithm in ['harmonic', 'harmonic_centrality']:
@@ -59,9 +59,9 @@ def run_task(token, algorithm, parameters_json):
         elif algorithm in ['proximity', 'network_proximity']:
             from tasks.network_proximity import network_proximity
             network_proximity(task_hook)
-        elif algorithm == 'domino':
-            from tasks.domino import domino_task
-            domino_task(task_hook, token)
+        # elif algorithm == 'domino':
+        #     from tasks.domino import domino_task
+        #     domino_task(task_hook, token)
         elif algorithm in ['betweenness', 'betweenness_centrality']:
             from tasks.betweenness_centrality import betweenness_centrality
             betweenness_centrality(task_hook)
