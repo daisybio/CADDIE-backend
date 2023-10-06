@@ -5,6 +5,15 @@ with their own images. The frontend runs in a separate container. The docker con
 can be found in the Dockerfile and the .gitlab-ci.yml. 
 
 
+## Local deployment
+
+Make sure that the ports in 'docker-compose.yml' are correct and it is recommend to adjust the default passwords in 'docker-django.env'.  
+
+`docker-compose up --build -d`
+
+
+
+# Development
 
 ### Setup
 
