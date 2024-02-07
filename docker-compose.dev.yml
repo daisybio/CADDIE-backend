@@ -1,22 +1,33 @@
 version: '3.3'
 
 services:
+  web:
+    container_name: caddie_web
+    image: ghcr.io/biomedbigdata/caddie-frontend:development
+    restart: always
+    ports:
+      - 8111:80
+    networks:
+      - caddie
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/biomedbigdata/caddie-backend:development
     container_name: caddie_app
     env_file:
       - 'docker-django.env'
     restart: always
     ports:
-      - 8000:8000
+      - 8112:8000
     networks:
       - db_net
       - redis_net
+      - caddie
     depends_on:
       - db
       - redis
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
   db:
     image: postgres
     restart: always
@@ -24,7 +35,7 @@ services:
     networks:
       - db_net
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - caddie_postgres_data:/var/lib/postgresql/data/
     environment:
       - POSTGRES_DB=caddie
       - POSTGRES_USER=caddie
@@ -46,6 +57,7 @@ services:
 networks:
   db_net:
   redis_net:
+  caddie:
 
 volumes:
-  postgres_data:
+  caddie_postgres_data:
