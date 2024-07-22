@@ -1,6 +1,6 @@
-import vcf   # VCF 4.1, 4-2
+# import vcf   # VCF 4.1, 4-2
 # import vcfpy  # VCF 4.3
-import vap
+# import vap
 from sqlalchemy import create_engine
 
 
@@ -12,7 +12,7 @@ class VCFUtils:
         :param file:
         :return: vcf reader object
         """
-        return vcf.Reader(fsock=file)
+        # return vcf.Reader(fsock=file)
 
     @staticmethod
     def __annotate(vcf_reader):
@@ -32,7 +32,8 @@ class VCFUtils:
         annotations = []
         for record in vcf_reader:
             for alt in record.ALT:
-                annotation = vap.annotate_variant(conn, f'chr{record.CHROM}', record.POS, record.REF, alt)
+                # annotation = vap.annotate_variant(conn, f'chr{record.CHROM}', record.POS, record.REF, alt)
+                annotation = None
                 if annotation is not None:
                     annotations.append((record, annotation))
         return annotations
