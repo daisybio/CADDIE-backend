@@ -47,7 +47,7 @@ files in the repo are up to date.
 
 Networks are pre-computed for each combination of cancer driver gene dataset, gene-gene interaction
  dataset and drug-gene interaction dataset. To update the graph-tool files run:
-`python3 make_graphs.py`
+`python3 manage.py make_graphs`
 
 
 
