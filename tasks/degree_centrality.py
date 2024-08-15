@@ -1,5 +1,6 @@
 from tasks.util.read_graph_tool_graph import read_graph_tool_graph
 from tasks.util.scores_to_results import scores_to_results
+from tasks.util.edge_weights import edge_weights
 from tasks.task_hook import TaskHook
 import graph_tool as gt
 import os.path
@@ -61,8 +62,29 @@ def degree_centrality(task_hook: TaskHook):
     only_atc_l_drugs = task_hook.parameters.get("only_atc_l_drugs", False)
 
     filter_paths = task_hook.parameters.get("filter_paths", True)
+    
+    hub_penalty = task_hook.parameters.get("hub_penalty", 0.0)
 
     drug_target_action = task_hook.parameters.get("drug_target_action", None)
+    
+    mutation_cancer_type = task_hook.parameters.get("mutation_cancer_type", None)
+    if mutation_cancer_type is not None:
+      mutation_cancer_type = models.MutationCancerType.objects.filter(name__iexact=mutation_cancer_type).first()
+      if mutation_cancer_type is None:
+        raise ValueError('Could not find tissue.')
+
+    expression_cancer_type = task_hook.parameters.get("expression_cancer_type", None)
+    if expression_cancer_type is not None:
+      expression_cancer_type = models.ExpressionCancerType.objects.filter(name__iexact=expression_cancer_type).first()
+      if expression_cancer_type is None:
+        raise ValueError('Could not find tissue.')
+
+    tissue = task_hook.parameters.get("tissue", None)
+    if tissue is not None:
+      tissue = models.Tissue.objects.filter(name__iexact=tissue).first()
+      if tissue is None:
+        raise ValueError('Could not find tissue.')
+
     
     available_drugs = task_hook.parameters.get("available_drugs", None)
     if available_drugs is not None:
@@ -93,6 +115,15 @@ def degree_centrality(task_hook: TaskHook):
         include_only_ctrpv2_drugs=include_only_ctrpv2_drugs
     )
     
+    weights = edge_weights(
+        g,
+        hub_penalty,
+        mutation_cancer_type,
+        expression_cancer_type,
+        tissue,
+        inverse=True,
+    )
+    
     # Set number of threads if OpenMP support is enabled.
     if gt.openmp_enabled():
         gt.openmp_set_num_threads(num_threads)
@@ -103,7 +134,10 @@ def degree_centrality(task_hook: TaskHook):
     for node in seed_graph_ids:
         for nb in g.get_all_neighbors(node):
             scores.a[nb] += 1
-    
+            edge = g.edge(node, nb) 
+            if edge:
+                scores[nb] += weights[edge]
+
     # Compute and return the results.
     task_hook.set_progress(2 / 3.0, "Formating results.")
     task_hook.set_results(

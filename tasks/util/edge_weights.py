@@ -1,9 +1,8 @@
 import graph_tool.stats as gts
-import json
 
 SMALL_VALUE = 1*10**-10
 
-def _calc_score(g, e, label, graph_key):
+def _calc_score(g, e, label, graph_key, average_weight):
     if label is not None:
         # consider label score
         source = 1 if g.vertex_properties["type"][int(e.source())] == 'Drug' else \
@@ -11,16 +10,17 @@ def _calc_score(g, e, label, graph_key):
         target = 1 if g.vertex_properties["type"][int(e.target())] == 'Drug' else \
             g.vertex_properties[graph_key][int(e.target())][label.name]
 
-        # source + target is on average 1 since it is normalized
-        # score can be 0 if unknown
-        if source is None or source == 0.0:
+        if source is None:
+            print('here', source)
             source = SMALL_VALUE
-        if target is None or target == 0.0:
+        if target is None:
+            print('here', target)
             target = SMALL_VALUE
     else:
         # no score, set it do default values
-        source = 0.5
-        target = 0.5
+        print('average weight', average_weight)
+        source = average_weight
+        target = average_weight
     return source, target
 
 def _calc_hub_penalty(g, hub_penalty, avdeg, weights, inverse):
@@ -66,17 +66,30 @@ def edge_weights(g, hub_penalty, mutation_cancer_type=None, expression_cancer_ty
 
         if hub_penalty < 0:
             hub_penalty = 0
-
+        
+        average_mutation_score = SMALL_VALUE
+        average_cancer_expression_score = SMALL_VALUE
+        average_tissue_expression_score = SMALL_VALUE
+        if mutation_cancer_type is not None:
+            average_mutation_score = sum(filter(None, [g.vertex_properties['mutation_scores'][e]
+                                        [mutation_cancer_type.name] for e in g.edges()])) / len(g.edges())
+        if expression_cancer_type is not None:
+            average_cancer_expression_score = sum(filter(None, [g.vertex_properties['cancer_expression_scores'][e]
+                                          [expression_cancer_type.name] for e in g.edges()])) / len(g.edges())
+        if tissue is not None:
+            average_tissue_expression_score = sum(filter(None, [g.vertex_properties['expression_scores'][e]
+                                                   [tissue.name] for e in g.edges()])) / len(g.edges())
         for e in g.edges():
             
             edge_avdeg = float(e.source().out_degree() + e.target().out_degree()) / 2.0
             
             # Mutation weights
-            mut_source, mut_target = _calc_score(g, e, mutation_cancer_type, 'mutation_scores')
+            mut_source, mut_target = _calc_score(g, e, mutation_cancer_type, 'mutation_scores', average_mutation_score)
             # Expression weights
-            expr_source, expr_target = _calc_score(g, e, expression_cancer_type, 'cancer_expression_scores')
+            expr_source, expr_target = _calc_score(g, e, expression_cancer_type,
+                                                   'cancer_expression_scores', average_cancer_expression_score)
             # Tissue Expression weights
-            texpr_source, texpr_target = _calc_score(g, e, tissue, 'expression_scores')
+            texpr_source, texpr_target = _calc_score(g, e, tissue, 'expression_scores', average_tissue_expression_score)
 
             penalized_weight = (1.0 / (mut_source + mut_target)) * (1.0 / (expr_source + expr_target)) * \
             (1.0 / (texpr_source + texpr_target)) * ((1.0 - hub_penalty) * avdeg + hub_penalty * edge_avdeg)
