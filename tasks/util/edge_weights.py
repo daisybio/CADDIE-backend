@@ -40,6 +40,17 @@ def _calc_hub_penalty(g, hub_penalty, avdeg, weights, inverse):
         weights[e] *= hub_penalty_weights_list[i]
     return weights
 
+def custom_edge_weights(g, custom_node_weights, weights=None):
+    new_weights = {}
+    for e in g.edges():
+        source = custom_node_weights[f'g{e.source()}']
+        target = custom_node_weights[f'g{e.target()}']
+        new_weight = (source + target) / 2.0
+        if weights:
+            new_weight = (new_weight + weights[e]) / 2.0
+        new_weights[e] = new_weight
+    return new_weights
+
 def edge_weights(g, hub_penalty, mutation_cancer_type=None, expression_cancer_type=None, 
                  tissue=None, inverse=False):
     """[summary]
@@ -58,7 +69,7 @@ def edge_weights(g, hub_penalty, mutation_cancer_type=None, expression_cancer_ty
         [type]: [description]
     """
     avdeg = gts.vertex_average(g, "total")[0]
-    weights = g.new_edge_property("double", val=avdeg)    
+    weights = g.new_edge_property("double", val=avdeg)
     if hub_penalty > 1:
         raise ValueError("Invalid hub penalty {}.".format(hub_penalty))
     # skip iterating through network if not needed to speed up
