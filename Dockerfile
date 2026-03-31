@@ -21,7 +21,6 @@ COPY ./requirements.txt /usr/src/caddie/requirements.txt
 
 # RUN pip3 install setuptools==57
 RUN pip3 install -r /usr/src/caddie/requirements.txt
-RUN pip3 install gunicorn
 
 COPY ./supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY ./docker-entrypoint.sh /entrypoint.sh
