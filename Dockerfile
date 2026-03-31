@@ -7,7 +7,7 @@ ENV PYTHONUNBUFFERED 1
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
-RUN apt-get update
+RUN apt-get update && apt-get upgrade -y
 RUN apt-get -y install build-essential
 RUN apt-get -y install gcc
 
@@ -15,7 +15,7 @@ RUN conda install -c conda-forge -y graph-tool
 
 RUN apt-get update
 RUN apt-get install -y supervisor nginx
-RUN apt-get install wget
+RUN apt-get install -y wget
 
 COPY ./requirements.txt /usr/src/caddie/requirements.txt
 
