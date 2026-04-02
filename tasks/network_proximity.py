@@ -1,6 +1,6 @@
 from tasks.task_hook import TaskHook
 from tasks.util.read_graph_tool_graph import read_graph_tool_graph
-from tasks.util.edge_weights import edge_weights
+from tasks.util.edge_weights import edge_weights, custom_edge_weights
 import os.path
 import graph_tool as gt
 import graph_tool.topology as gtt
@@ -42,6 +42,10 @@ def network_proximity(task_hook: TaskHook):
     include_only_ctrpv2_drugs = task_hook.parameters.get("include_only_ctrpv2_drugs", False)
 
     filter_paths = task_hook.parameters.get("filter_paths", True)
+    
+    # {'graph_id1': value1, 'graph_id2': value2, ...}
+    custom_node_weights = task_hook.parameters.get("custom_node_weights", None)
+    custom_node_weights_additionally = task_hook.parameters.get("custom_node_weights_additionally", False)
 
     mutation_cancer_type = task_hook.parameters.get("mutation_cancer_type", None)
     if mutation_cancer_type is not None:
@@ -98,14 +102,19 @@ def network_proximity(task_hook: TaskHook):
 
     # Computing edge weights.
     task_hook.set_progress(1.0 / 8, "Computing edge weights.")
-    weights = edge_weights(
-        g,
-        hub_penalty,
-        mutation_cancer_type,
-        expression_cancer_type,
-        tissue,
-        inverse=True,
-    )
+    
+    if custom_node_weights_additionally:
+        weights = edge_weights(
+            g,
+            hub_penalty,
+            mutation_cancer_type,
+            expression_cancer_type,
+            tissue,
+            inverse=True,
+        )
+        weights = custom_edge_weights(g, custom_node_weights, weights)
+    else:
+        weights = custom_edge_weights(g, custom_node_weights)
 
     # task_hook.set_progress(2.0 / 8, "Deleting drug targets not in LCC.")
     drug_targets = {drug_id: g.get_all_neighbors(drug_id) for drug_id in drug_ids}

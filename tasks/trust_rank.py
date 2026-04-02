@@ -1,6 +1,6 @@
 from tasks.util.read_graph_tool_graph import read_graph_tool_graph
 from tasks.util.scores_to_results import scores_to_results
-from tasks.util.edge_weights import edge_weights
+from tasks.util.edge_weights import edge_weights, custom_edge_weights
 from tasks.task_hook import TaskHook
 import graph_tool as gt
 import graph_tool.centrality as gtc
@@ -85,6 +85,10 @@ def trust_rank(task_hook: TaskHook):
     only_atc_l_drugs = task_hook.parameters.get("only_atc_l_drugs", False)
 
     filter_paths = task_hook.parameters.get("filter_paths", True)
+    
+    # {'graph_id1': value1, 'graph_id2': value2, ...}
+    custom_node_weights = task_hook.parameters.get("custom_node_weights", None)
+    custom_node_weights_additionally = task_hook.parameters.get("custom_node_weights_additionally", False)
 
     mutation_cancer_type = task_hook.parameters.get("mutation_cancer_type", None)
     if mutation_cancer_type is not None:
@@ -136,14 +140,18 @@ def trust_rank(task_hook: TaskHook):
     )
 
     task_hook.set_progress(1 / 4.0, "Computing edge weights.")
-    weights = edge_weights(
-        g,
-        hub_penalty,
-        mutation_cancer_type,
-        expression_cancer_type,
-        tissue,
-        inverse=True,
-    )
+    if custom_node_weights_additionally:
+        weights = edge_weights(
+            g,
+            hub_penalty,
+            mutation_cancer_type,
+            expression_cancer_type,
+            tissue,
+            inverse=True,
+        )
+        weights = custom_edge_weights(g, custom_node_weights, weights)
+    else:
+        weights = custom_edge_weights(g, custom_node_weights)
     
     # Set number of threads if OpenMP support is enabled.
     if gt.openmp_enabled():

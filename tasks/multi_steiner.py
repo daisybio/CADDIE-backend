@@ -2,7 +2,7 @@ from tasks.task_hook import TaskHook
 from tasks.util.steiner_tree import steiner_tree
 from tasks.util.find_bridges import find_bridges
 from tasks.util.read_graph_tool_graph import read_graph_tool_graph
-from tasks.util.edge_weights import edge_weights
+from tasks.util.edge_weights import edge_weights, custom_edge_weights
 import os.path
 import graph_tool as gt
 import graph_tool.util as gtu
@@ -40,6 +40,10 @@ def multi_steiner(task_hook: TaskHook):
     hub_penalty = task_hook.parameters.get("hub_penalty", 0.0)
     
     num_threads = task_hook.parameters.get("num_threads", 1)
+    
+    # {'graph_id1': value1, 'graph_id2': value2, ...}
+    custom_node_weights = task_hook.parameters.get("custom_node_weights", None)
+    custom_node_weights_additionally = task_hook.parameters.get("custom_node_weights_additionally", False)
 
     mutation_cancer_type = task_hook.parameters.get("mutation_cancer_type", None)
     if mutation_cancer_type is not None:
@@ -86,14 +90,18 @@ def multi_steiner(task_hook: TaskHook):
     seed_map = {g.vertex_properties['graphId'][node]: node for node in seed_ids}
 
     task_hook.set_progress(1 / (float(num_trees + 3)), "Computing edge weights.")
-    weights = edge_weights(
-        g,
-        hub_penalty,
-        mutation_cancer_type,
-        expression_cancer_type,
-        tissue,
-        inverse=True,
-    )
+    if custom_node_weights_additionally:
+        weights = edge_weights(
+            g,
+            hub_penalty,
+            mutation_cancer_type,
+            expression_cancer_type,
+            tissue,
+            inverse=True,
+        )
+        weights = custom_edge_weights(g, custom_node_weights, weights)
+    else:
+        weights = custom_edge_weights(g, custom_node_weights)
 
     # Find first steiner trees
     task_hook.set_progress(2 / (float(num_trees + 3)), "Computing Steiner tree 1 of {}.".format(num_trees))
